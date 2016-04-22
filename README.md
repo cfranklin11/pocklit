@@ -1,2 +1,2 @@
 # pocklit
-Mobile Education App for #SpaceApps 2016
+Back-End for Mobile Education App for #SpaceApps 2016
