@@ -1,14 +1,9 @@
 'use strict';
 
-var adminHelper = require( './middleware/admin.js' );
-
-module.exports = function ( app ) {
-
-
 var adminHelper, configAuth;
 
-adminHelper = require( './middleware/admin.js' ),
-configAuth = require( './config/auth.js' ),
+adminHelper = require( './middleware/admin.js' );
+configAuth = require( './config/auth.js' );
 
 module.exports = function ( app, passport ) {
 
@@ -49,129 +44,57 @@ module.exports = function ( app, passport ) {
   // =====================================
   // ADMIN ==============================
   // =====================================
-  app.all( '/admin*', isLoggedIn, isAdmin, function ( req, res, next ) {
-    next();
-  });
+  // app.all( '/admin*', isLoggedIn, isAdmin, function ( req, res, next ) {
+  //   next();
+  // });
 
   // PARAMETERS
-  app.param( 'user', function ( req, res, next, user ) {
-    req.appUser = user;
+  app.param( 'language', function ( req, res, next, user ) {
+    req.eduLanguage = language;
+    next();
+  });
+  app.param( 'module', function ( req, res, next, account ) {
+    req.eduModule = module;
     next();
   });
 
-  app.param( 'account', function ( req, res, next, account ) {
-    req.account = account;
-    next();
-  });
-
+  // ADMIN
   app.get( '/admin', function ( req, res ) {
     res.render( 'admin.ejs', { message: req.flash( 'adminMsg' )});
   });
 
-  // ACCOUNT ADMIN
-  app.get( '/admin/accounts', function ( req, res ) {
-    adminHelper.getAccounts( req, res );
+  // LANGUAGE ADMIN
+  app.get( '/admin/languages', function ( req, res ) {
+    adminHelper.getLanguages( req, res );
+  });
+  app.post( '/admin/languages', function ( req, res ) {
+    adminHelper.addLanguage( req, res );
+  });
+  app.post( '/admin/languages/:language/delete', function ( req, res ) {
+    adminHelper.deleteLanguage( req, res );
   });
 
-  app.post( '/admin/accounts', function ( req, res ) {
-    adminHelper.addAccount( req, res );
+  // MODULE ADMIN
+  app.get( '/admin/languages/:language/modules', function(req, res) {
+    adminHelper.getModules(req, res);
   });
-
-  app.get( '/admin/accounts/:platform',
+  app.post( '/admin/languages/:language/modules', function ( req, res ) {
+    adminHelper.addModule( req, res );
+  });
+  app.get( '/admin/languages/:language/modules/:module'), function(req, res) {
+    adminHelper.getModule(req, res);
+  });
+  app.post( '/admin/languages/:language/modules/:module/delete',
     function ( req, res ) {
-      adminHelper.getFbToken( req, res );
-    }
-  );
-
-  app.post( '/admin/accounts/:account/delete', function ( req, res ) {
-    adminHelper.deleteAccount( req, res );
-  });
-
-  // USER ADMIN
-  app.get( '/admin/users', function ( req, res ) {
-    adminHelper.getUsers( req, res );
-  });
-
-  app.get( '/admin/users/:user', function ( req, res ) {
-    adminHelper.getUser( req, res );
-  });
-
-  app.post( '/admin/users/:user', adminHelper.toggleAdmin, function ( req, res ) {
-    res.redirect( '/admin/users/' + encodeURIComponent( req.appUser ));
-  });
-
-  app.post( '/admin/users/:user/delete', function ( req, res ) {
-    adminHelper.deleteUser( req, res );
-  });
-
-  app.get( '/admin/users/:user/accounts', function ( req, res ) {
-    adminHelper.getAccounts( req, res );
-  });
-
-  app.post( '/admin/users/:user/accounts', function ( req, res ) {
-    adminHelper.addUserAccount( req, res );
-  });
-
-  app.post( '/admin/users/:user/accounts/:account/delete', function ( req, res ) {
-    adminHelper.deleteUserAccount( req, res );
+      adminHelper.deleteModule( req, res );
   });
 
   // API DATA ROUTES
-  app.get( '/api/:metric/:time', function ( req, res ) {
-    var metric, time;
+  app.get( '/api/languages/:language/modules', function ( req, res ) {
+    var section;
 
-    metric = req.dataMetric;
-    time = req.dataTime;
-
-    switch ( metric ) {
-
-      case 'spend':
-        req.customParams = {
-          metric: 'Spend',
-          label: 'Pub. Cost $'
-        };
-        break;
-
-      case 'impressions':
-        req.customParams = {
-          metric: 'Impressions',
-          label: 'Impr.'
-        };
-        break;
-
-      case 'clicks':
-        req.customParams = {
-          metric: 'Clicks',
-          label: 'Clicks'
-        };
-        break;
-
-      case 'conversions':
-        req.customParams = {
-          metric: 'Conversions',
-          label: 'Conv.'
-        };
-        break;
-    }
-
-    switch ( time ) {
-
-      case 'total':
-        d3Helper.getTotalData( req, res );
-        break;
-
-      case 'now':
-        d3Helper.getNowData( req, res );
-        break;
-    }
-  });
-
-  app.get( '/api/accounts', function ( req, res ) {
-    req.customParams = {
-      metric: 'Account',
-    };
-
-    d3Helper.getAccountList( req, res );
+    section = req.body.section;
+    adminHelper.getModules(req, res);
   });
 };
 
@@ -180,6 +103,6 @@ function isLoggedIn(req, res, next) {
   if (req.isAuthenticated()) {
     return next();
   }
-  req.flash('loginMsg', 'Debes iniciar una sesión para ver esta página');
-  res.redirect('/acceder');
+  req.flash('loginMsg', 'You need to log in to see that page.');
+  res.redirect('/login');
 }
