@@ -1,3 +1,7 @@
+'use strict';
+
+var adminHelper = require( './middleware/admin.js' );
+
 module.exports = function ( app ) {
 
   /* GET home page. */
