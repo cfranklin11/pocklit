@@ -14,6 +14,9 @@ module.exports = function ( app, passport ) {
   app.get( '/', function ( req, res ) {
     res.render( 'index', { message: req.flash( 'adminMsg' )});
   });
+  app.get('/upload', function(req, res, next) {
+    adminHelper.uploadData(req, res, next);
+  });
 
   // =====================================
   // ADMIN ==============================
