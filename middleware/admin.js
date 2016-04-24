@@ -53,6 +53,7 @@ self = module.exports = {
           } else {
             language = new Language({
               name: langName,
+              map: langPath,
               reading: [],
               numbers: []
             });

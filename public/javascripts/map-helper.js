@@ -125,59 +125,20 @@ var myMapArea;
       path = myMapArea.getPath();
       path = google.maps.geometry.encoding.encodePath(path);
 
-      $('body').append('<div id="new-map" style="width:500px;height:380px;"></div>');
-      initMap('new-map', path);
-
-
-      // $.post({
-      //   type: 'POST',
-      //   url: '/admin/languages',
-      //   data: {
-      //     name: name,
-      //     path: path
-      //   },
-      //   success: function(res) {
-      //     console.log(res);
-      //   },
-      //   error: function(res) {
-      //     console.log(res);
-      //   }
-      // });
+      $.post({
+        type: 'POST',
+        url: '/admin/languages',
+        data: {
+          name: name,
+          path: path
+        },
+        success: function(res) {
+          console.log(res);
+        },
+        error: function(res) {
+          console.log(res);
+        }
+      });
     }
   });
 })();
-
-(function($) {
-  // $('form').submit(function(event) {
-  //   var name, path;
-
-  //   event.preventDefault();
-
-  //   if (!myMapArea) {
-  //     alert('Please select an area of the map where your language is spoken.');
-
-  //   } else {
-  //     name = $('#name-input').val();
-  //     path = myMapArea.getPath();
-  //     path = google.maps.geometry.encoding.encodePath(path);
-
-  //     $('body').append('<div id="new-map"></div>');
-
-
-  //     // $.post({
-  //     //   type: 'POST',
-  //     //   url: '/admin/languages',
-  //     //   data: {
-  //     //     name: name,
-  //     //     path: path
-  //     //   },
-  //     //   success: function(res) {
-  //     //     console.log(res);
-  //     //   },
-  //     //   error: function(res) {
-  //     //     console.log(res);
-  //     //   }
-  //     // });
-  //   }
-  // });
-})(jQuery);
