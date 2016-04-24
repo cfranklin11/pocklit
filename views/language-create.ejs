@@ -6,15 +6,18 @@
   </head>
   <body>
 
-    <h1>Create a new Language</h1>
+    <h1>Create a new Language for Educational Modules</h1>
     <form method="post" action="/admin/languages">
 
       <label for="name">Language Name</label>
       <input type="text" name="name" id="name-input">
 
-      <button type="submit" id="submit-input">Submit</button>
+      <button type="submit" id="submit-input">Add Language</button>
     </form>
 
+    <p>Right click to add markers that represent the region where the language is spoken</p>
+    <p>Double-click markers to highlight the region</p>
+    <p>Adjust the size and shape of the region as desired</p>
     <div id="googleMap" style="width:500px;height:380px;"></div>
 
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
