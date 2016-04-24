@@ -39,37 +39,37 @@ self = module.exports = {
     langName = inputs.name;
     langPath = inputs.path;
 
-    // Language.findOne({'name': langName},
-    //   function (err, language) {
-    //     if (err) {
-    //       req.flash('langMsg', err);
-    //       res.redirect('/admin/languages');
+    Language.findOne({'name': langName},
+      function (err, language) {
+        if (err) {
+          req.flash('langMsg', err);
+          res.redirect('/admin/languages');
 
-    //     } else {
-    //       if (language) {
-    //         req.flash('langMsg', 'That language already exists. Please edit existing language instead.');
-    //         res.redirect('/admin/languages');
+        } else {
+          if (language) {
+            req.flash('langMsg', 'That language already exists. Please edit existing language instead.');
+            res.redirect('/admin/languages');
 
-    //       } else {
-    //         language = new Language({
-    //           name: langName,
-    //           reading: [],
-    //           numbers: []
-    //         });
+          } else {
+            language = new Language({
+              name: langName,
+              reading: [],
+              numbers: []
+            });
 
-    //         language.save(function(err) {
-    //           if (err) {
-    //             req.flash('langMsg', err);
-    //             res.redirect('/admin/languages');
+            language.save(function(err) {
+              if (err) {
+                req.flash('langMsg', err);
+                res.redirect('/admin/languages');
 
-    //           } else {
-    //             req.flash('langMsg', 'New language added.');
-    //             res.redirect('/admin/languages');
-    //           }
-    //         });
-    //       }
-    //     }
-    // });
+              } else {
+                req.flash('langMsg', 'New language added.');
+                res.redirect('/admin/languages');
+              }
+            });
+          }
+        }
+    });
   },
   getModules: function (req, res, next) {
     var langName, readModules, numModules, readLength, numLength, readArray,

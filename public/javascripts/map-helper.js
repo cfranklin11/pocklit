@@ -3,18 +3,34 @@
 var myMapArea;
 
 (function() {
-  function initMap() {
-    var mapProp, map, mapMarkers, coordinates;
+  function initMap(element, shape) {
+    var mapProp, map, mapMarkers, coordinates, thisShape, thisArea;
 
     mapProp = {
       center:new google.maps.LatLng(51.508742,-0.120850),
       zoom:5,
       mapTypeId:google.maps.MapTypeId.HYBRID
     };
-    map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
+    map=new google.maps.Map(document.getElementById(element),mapProp);
 
     mapMarkers = [];
     coordinates = [];
+
+
+    if (shape) {
+      thisShape = google.maps.geometry.encoding.decodePath(shape);
+      thisArea=new google.maps.Polygon({
+        path: thisShape,
+        map: map,
+        editable: true,
+        draggable: true,
+        strokeColor:"#0000FF",
+        strokeOpacity:0.8,
+        strokeWeight:2,
+        fillColor:"#0000FF",
+        fillOpacity:0.4
+      });
+    }
 
     map.addListener('rightclick', function(event) {
       var position, marker;
@@ -53,6 +69,7 @@ var myMapArea;
         var thisMap, i;
 
         thisMap = this.map;
+
         myMapArea=new google.maps.Polygon({
           path: coordinates,
           map: thisMap,
@@ -92,10 +109,9 @@ var myMapArea;
     });
   }
 
-  google.maps.event.addDomListener(window, 'load', initMap);
-})();
+  google.maps.event.addDomListener(window, 'load', initMap('googleMap'));
 
-(function($) {
+
   $('form').submit(function(event) {
     var name, path;
 
@@ -109,22 +125,59 @@ var myMapArea;
       path = myMapArea.getPath();
       path = google.maps.geometry.encoding.encodePath(path);
 
-            console.log(name, path);
+      $('body').append('<div id="new-map" style="width:500px;height:380px;"></div>');
+      initMap('new-map', path);
 
-      $.post({
-        type: 'POST',
-        url: '/admin/languages',
-        data: {
-          name: name,
-          path: path
-        },
-        success: function(res) {
-          console.log(res);
-        },
-        error: function(res) {
-          console.log(res);
-        }
-      });
+
+      // $.post({
+      //   type: 'POST',
+      //   url: '/admin/languages',
+      //   data: {
+      //     name: name,
+      //     path: path
+      //   },
+      //   success: function(res) {
+      //     console.log(res);
+      //   },
+      //   error: function(res) {
+      //     console.log(res);
+      //   }
+      // });
     }
   });
+})();
+
+(function($) {
+  // $('form').submit(function(event) {
+  //   var name, path;
+
+  //   event.preventDefault();
+
+  //   if (!myMapArea) {
+  //     alert('Please select an area of the map where your language is spoken.');
+
+  //   } else {
+  //     name = $('#name-input').val();
+  //     path = myMapArea.getPath();
+  //     path = google.maps.geometry.encoding.encodePath(path);
+
+  //     $('body').append('<div id="new-map"></div>');
+
+
+  //     // $.post({
+  //     //   type: 'POST',
+  //     //   url: '/admin/languages',
+  //     //   data: {
+  //     //     name: name,
+  //     //     path: path
+  //     //   },
+  //     //   success: function(res) {
+  //     //     console.log(res);
+  //     //   },
+  //     //   error: function(res) {
+  //     //     console.log(res);
+  //     //   }
+  //     // });
+  //   }
+  // });
 })(jQuery);
