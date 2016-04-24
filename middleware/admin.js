@@ -1,420 +1,430 @@
 'use strict';
 
-// load up the user model
-var Account = require( '../public/js/models/account' ),
-  User = require( '../public/js/models/user' ),
-  FB = require( 'fb' ),
-  postmark = require( './postmark.js' );
+var Language, self;
 
-var self = module.exports = {
+Language = require('../models/language.js');
 
-  getAccounts: function ( req, res ) {
-
-    // find a user whose email is the same as the forms email
-    Account.find({ 'name': /.*/ },
-      function ( err, accounts ) {
-        // if there are any errors, return the error before anything else
-        if ( err ) {
-          req.flash( 'adminMsg', err );
-          res.redirect( '/admin' );
+self = module.exports = {
+  getLanguages: function (req, res, next) {
+    Language.find({'name': /.*/},
+      function (err, languages) {
+        if (err) {
+          req.flash('adminMsg', err);
+          res.redirect('/admin');
 
         } else {
-          var appUser = req.appUser;
-          req.appUser = null;
+          if (!languages) {
+            req.flash('adminMsg', 'No languages found.');
+            res.redirect('/admin');
 
-          // if all is well, return next
-          res.render( 'accounts.ejs',
-            { accounts: accounts,
-              message: req.flash( 'accountMsg' ),
-              user: req.user,
-              appUser: appUser
-            }
-          );
+         } else {
+            res.render('languages.ejs', {
+              languages: languages,
+              title: 'Languages that Have Modules',
+              message: req.flash('langMsg')
+           });
+          }
         }
-      }
-    );
+    });
   },
+  addLanguage: function(req, res, next) {
+    var form,langName, lessons;
 
-  addAccount: function ( req, res ) {
-    if ( req.body.platform === 'facebook' ) {
-      self.addFbAccount( req, res );
-    } else {
-      req.flash( 'accountMsg', "We don't have access to that platform's campaigns yet." );
-      res.redirect( 'admin/accounts' );
+    form = req.body;
+    langName = form.name;
+
+    section = form['x-coord'];
+    y = form['y-coord'];
+    locationTitle = form.title;
+    locationId = locationTitle.toLowerCase();
+    descriptionText = form.description;
+    linkUrl = form['link-url'];
+    linkText = form['link-text'];
+    category = form.category;
+    imgNames = form.images;
+
+    // Images need to be in form of an array
+    if (typeof imgNames === 'string') {
+      if (imgNames === '') {
+        imgNames = [];
+      } else {
+        imgNames = [imgNames];
+      }
     }
-  },
 
-  addFbAccount: function ( req, res ) {
-    var accountId = req.body.id,
-      token = req.user.facebook.token;
-
-    FB.setAccessToken( token );
-
-    FB.api('/v2.5/act_' + accountId,
-      { fields: [ 'name', 'account_id' ]},
-      function (response) {
-        if ( response.error ) {
-          console.log( response.error );
-          req.flash( 'accountMsg', response.error );
-          res.redirect( '/admin/accounts' );
-
-        } else {
-          if ( response && !response.error ) {
-            console.log( response );
-
-            var accountId = response.account_id,
-              accountName = response.name;
-
-            // find a user whose email is the same as the forms email
-            Account.findOne({ 'name': accountName },
-              function ( err, account ) {
-                if ( err ) {
-                  req.flash( 'accountMsg', err );
-                  res.redirect( '/admin/accounts' );
-
-                } else {
-                  // if no user is found, return the message
-                  if ( account ) {
-                  // req.flash is the way to set flashdata using connect-flash
-                    req.flash( 'accountMsg', 'That account is already in the database.' );
-                    res.redirect( '/admin/accounts' );
-
-                  } else {
-                    // if there is no user with that email
-                    // create the user
-                    var newAccount = new Account();
-
-                    // set the user's local credentials
-                    newAccount.platform = 'facebook';
-                    newAccount.channel = 'social';
-                    newAccount.name = accountName;
-                    newAccount.id = accountId;
-                    newAccount.adminUser = req.user.local.email;
-
-                    // save the user
-                    newAccount.save( function ( err ) {
-                      if ( err )
-                        throw err;
-
-                      req.flash( 'accountMsg', 'Account added.' )
-                      res.redirect( '/admin/accounts' );
-                    });
-                  }
-                }
-              }
-            );
-          } else {
-            req.flash( 'accountMsg', "Well, that didn't work" );
-            res.redirect( '/admin/accounts' );
-          }
+    newLocation = {
+      id: locationId,
+      title: locationTitle,
+      description: {
+        images: imgNames,
+        text: descriptionText,
+        link: {
+          text: linkText,
+          url: linkUrl
         }
-      }
-    );
-  },
+      },
+      category: category,
+      x: x,
+      y: y,
+      pin: 'circular',
+      fill: 'red'
+    };
 
-  deleteAccount: function ( req, res ) {
-    var accountId = req.account;
-
-    // find a user whose email is the same as the forms email
-    Account.remove({ 'id': accountId }, function ( err, dbRes ) {
-      console.log(dbRes);
-      // if there are any errors, return the error before anything else
-      if ( err ) {
-        req.flash( 'accountMsg', err );
-        res.redirect( '/admin/accounts' );
-
-      } else {
-        // if no user is found, return the message
-        if ( dbRes.n === 0 ) {
-          // req.flash is the way to set flashdata using connect-flash
-          req.flash( 'accountMsg', 'No account found.' );
-          res.redirect( '/admin/accounts' );
+    Mapa.findOne({'id': mapId},
+      function (err, map) {
+        if (err) {
+          req.flash('mapMsg', err);
+          res.redirect('/admin/mapas/' + mapId);
 
         } else {
-          req.flash( 'accountMsg', 'Account was removed.' );
-          res.redirect( '/admin/accounts' );
-        }
-      }
-    });
-  },
-
-  getUsers: function ( req, res ) {
-
-    // find a user whose email is the same as the forms email
-    User.find({ 'local.email': /.*/ },
-      function ( err, users ) {
-        // if there are any errors, return the error before anything else
-        if ( err ) {
-          req.flash( 'adminMsg', err );
-          res.redirect( '/admin' );
-
-        } else {
-          // if no user is found, return the message
-          if ( !users ) {
-          // req.flash is the way to set flashdata using connect-flash
-            req.flash( 'adminMsg', 'No users found.' );
-            res.redirect( '/admin' );
+          if (!map) {
+            req.flash('mapMsg', 'No se encontró ese mapa.');
+            res.redirect('/admin/mapas');
 
           } else {
-            console.log( users );
-            // if all is well, return next
-            res.render( 'users.ejs', { users: users, message: req.flash( 'userMsg' )});
-          }
-        }
-      }
-    );
-  },
+            map.locations.push(newLocation);
 
-  getUser: function ( req, res ) {
-    var userEmail = req.appUser;
+            map.save(function(err) {
+              if (err) {
+                req.flash('mapMsg', err);
+                res.redirect('/admin/mapas/' + mapId + '/puntos/agregar');
 
-    // find a user whose email is the same as the forms email
-    User.findOne({ 'local.email': userEmail }, function ( err, user ) {
-      // if there are any errors, return the error before anything else
-      if ( err ) {
-        req.flash( 'userMsg', err );
-        res.redirect( '/admin/users' );
-
-      } else {
-        // if no user is found, return the message
-        if ( !user ) {
-        // req.flash is the way to set flashdata using connect-flash
-          req.flash( 'userMsg', 'User not found.' );
-          res.redirect( '/admin/users' );
-
-        } else {
-          // if all is well, return next
-          console.log( user );
-          res.render( 'user.ejs', { user: user, message: req.flash( 'userMsg' )});
-        }
-      }
-    });
-  },
-
-  toggleAdmin: function ( req, res, next ) {
-    var userEmail = req.appUser;
-
-    // find a user whose email is the same as the forms email
-    User.findOne({ 'local.email': userEmail }, function ( err, user ) {
-      // if there are any errors, return the error before anything else
-      if ( err ) {
-        req.flash( 'userMsg', err );
-        res.redirect( '/admin/users' );
-
-      } else {
-        // if no user is found, return the message
-        if ( !user ) {
-        // req.flash is the way to set flashdata using connect-flash
-          req.flash( 'userMsg', 'User not found.' );
-          res.redirect( '/admin/users' );
-
-        } else {
-          if ( !user.admin ) {
-            self.makeAdmin( req, res, next, user );
-          } else {
-            self.removeAdmin( req, res, next, user );
-          }
-        }
-      }
-    });
-  },
-
-  makeAdmin: function ( req, res, next, user ) {
-    var userEmail = user.local.email;
-
-    // find a user whose email is the same as the forms email
-    User.update({ 'local.email': userEmail }, { admin: true }, function ( err, dbRes ) {
-      // if there are any errors, return the error before anything else
-      if ( err ) {
-        req.flash( 'userMsg', err );
-        res.redirect( '/admin/users' );
-
-      } else {
-        // if no user is found, return the message
-        if ( dbRes.n === 0 ) {
-          // req.flash is the way to set flashdata using connect-flash
-          req.flash( 'userMsg', 'No user found' );
-          res.redirect( '/admin/users' );
-
-        } else {
-          // if all is well, return next
-          console.log( dbRes );
-          req.flash( 'userMsg', userEmail + ' was made admin.' );
-          next();
-        }
-      }
-    });
-  },
-
-  removeAdmin: function ( req, res, next, user ) {
-    var userEmail = user.local.email;
-
-    // find a user whose email is the same as the forms email
-    User.update({ 'local.email': userEmail }, { admin: false }, function ( err, dbRes ) {
-      console.log(dbRes);
-      // if there are any errors, return the error before anything else
-      if ( err ) {
-        req.flash( 'userMsg', err );
-        res.redirect( '/admin/users' );
-      } else {
-
-        // if no user is found, return the message
-        if ( dbRes.n === 0 ) {
-          // req.flash is the way to set flashdata using connect-flash
-          req.flash( 'userMsg', 'No user found' );
-          res.redirect( '/admin/users' );
-        } else {
-
-          // if all is well, return next
-          console.log( dbRes );
-          req.flash( 'userMsg', 'Admin access was removed from ' + userEmail );
-          next();
-        }
-      }
-    });
-  },
-
-  deleteUser: function ( req, res, next ) {
-    var userEmail = req.appUser;
-
-    // find a user whose email is the same as the forms email
-    User.remove({ 'local.email': userEmail }, function ( err, dbRes ) {
-      // if there are any errors, return the error before anything else
-      if ( err ) {
-        req.flash( 'userMsg', err );
-        res.redirect( '/admin/users' );
-
-      } else {
-        // if no user is found, return the message
-        if ( dbRes.n === 0 ) {
-          // req.flash is the way to set flashdata using connect-flash
-          req.flash( 'userMsg', 'No user found' );
-          res.redirect( '/admin/users' );
-
-        } else {
-          req.flash( 'userMsg', 'User was removed' );
-          res.redirect( '/admin/users' );
-        }
-      }
-    });
-  },
-
-  addUserAccount: function ( req, res, next ) {
-    var userEmail = req.appUser,
-      newAccountId = req.body.accountId;
-
-    // find a user whose email is the same as the forms email
-    User.findOne({ 'local.email': userEmail },
-      'accounts',
-      function ( err, user ) {
-        // if there are any errors, return the error before anything else
-        if ( err ) {
-          req.flash( 'userMsg', err );
-          res.redirect( '/admin/users/' + encodeURIComponent( userEmail ));
-
-        } else {
-          // if no user is found, return the message
-          if ( !user ) {
-          // req.flash is the way to set flashdata using connect-flash
-            req.flash( 'userMsg', 'User not found.' );
-            res.redirect( '/admin/users/' + encodeURIComponent( userEmail ));
-
-          } else {
-            var userAccounts = user.accounts || [];
-
-            Account.findOne({ 'id': newAccountId },
-              function ( err, account ) {
-                if ( err ) {
-                  req.flash( 'userMsg', err );
-                  res.redirect( '/admin/users/' + encodeURIComponent( userEmail ) + '/accounts');
-
-                } else {
-                  // if no account is found, return the message
-                  if ( !account ) {
-                  // req.flash is the way to set flashdata using connect-flash
-                    req.flash( 'userMsg', 'Account not found.' );
-                    res.redirect( '/admin/users/' + encodeURIComponent( userEmail ) + '/accounts');
-
-                  } else {
-                    var newUserAccount = {
-                        channel: account.channel,
-                        platform: account.platform,
-                        name: account.name,
-                        id: account.id,
-                        adminUser: account.adminUser
-                      },
-                      newUserAccounts = [];
-                      newUserAccounts.push( newUserAccount );
-
-                    user.accounts = newUserAccounts;
-                    user.save( function ( err ) {
-                      if ( err ) {
-                        console.log(err);
-                        req.flash( 'accountMsg', err );
-                        res.redirect( '/admin/users/' + encodeURIComponent( userEmail ) + '/accounts' );
-
-                      } else {
-                        postmark.sendAccessSuccess( userEmail,
-                          newUserAccount.name, newUserAccount.platform );
-                        req.flash( 'userMsg', 'Account added to user profile.' );
-                        res.redirect( '/admin/users/' + encodeURIComponent( userEmail ));
-                      }
-                    });
-                  }
-                }
-              }
-            );
-          }
-        }
-      }
-    );
-  },
-
-  deleteUserAccount: function ( req, res, next ) {
-    var userEmail = req.appUser,
-      accountId = req.account;
-
-    // find a user whose email is the same as the forms email
-    User.findOne({ 'local.email': userEmail },
-      'accounts',
-      function ( err, user ) {
-        // if there are any errors, return the error before anything else
-        if ( err ) {
-          req.flash( 'userMsg', err );
-          res.redirect( '/admin/users/' + encodeURIComponent( userEmail ));
-
-        } else {
-          // if no user is found, return the message
-          if ( !user ) {
-          // req.flash is the way to set flashdata using connect-flash
-            req.flash( 'userMsg', 'User not found.' );
-            res.redirect( '/admin/users/' + encodeURIComponent( userEmail ));
-
-          } else {
-            var userAccounts = user.accounts || [],
-              i = 0;
-
-            do {
-              if ( accountId === userAccounts[ i ][ 'id' ]) {
-                userAccounts.splice( i, 1 );
-              }
-              i++;
-            } while ( i < userAccounts.length && accountId !== userAccounts[ i ][ 'id' ] );
-
-            user.accounts = userAccounts;
-            user.save( function ( err ) {
-              if ( err ) {
-                console.log(err);
-                req.flash( 'accountMsg', err );
-                res.redirect( '/admin/users/' + encodeURIComponent( userEmail ) + '/accounts' );
               } else {
-                req.flash( 'userMsg', 'Account removed from user profile.' );
-                res.redirect( '/admin/users/' + encodeURIComponent( userEmail ));
+                req.flash('mapMsg', 'Se agregó el punto nuevo.');
+                res.redirect('/admin/mapas/' + mapId);
               }
             });
           }
         }
+    });
+  },
+  getModules: function (req, res, next) {
+    var langName, modules, modulesLength, i, module;
+
+    langName = req.eduLanguage;
+    // descArray = [];
+
+    Language.findOne({'name': langName}, function (err, language) {
+      if (err) {
+        req.flash('langMsg', err);
+        res.redirect('/admin/languages');
+
+      } else {
+        if (!language) {
+          req.flash('langMsg', 'Language not found.');
+          res.redirect('/admin/languages');
+        } else {
+
+          // Build description string from location description object,
+          // so it will play nice with mapplic plugin
+          modules = language.modules;
+          // modulesLength = modules.length;
+
+          // for (i = 0; i < modulesLength; i++) {
+          //   module = modules[i];
+            // descString = '<p>';
+            // desc = location.description;
+            // imgs = desc.images;
+            // imgsLength = imgs.length;
+
+            // for (j = 0; j < imgsLength; j++) {
+            //   descString += '<img src="' + imgs[j] + '">';
+            // }
+
+            // descString += '<br>' + desc.text;
+
+            // if (desc.link) {
+            //   descString += ' <a href="' + desc.link.url +
+            //     '" target="_blank">' + desc.link.text + '</a></p>';
+            // } else {
+            //   descString += '</p>';
+            // }
+
+            // map.locations[i].description = descString;
+          // }
+
+          // Object formatted according to mapplic
+          // mapplicObj = {
+          //   mapwidth: 640,
+          //   mapheight: 600,
+          //   categories: [
+          //     {
+          //       id: 'naturaleza',
+          //       title: 'Naturaleza',
+          //       color: '#4cd3b8',
+          //       show: true
+          //     },
+          //     {
+          //       id: 'servicios',
+          //       title: 'Servicios',
+          //       color: '#80D316',
+          //       show: true
+          //     },
+          //     {
+          //       id: 'ciudades',
+          //       title: 'Ciudades',
+          //       color: '#63aa9c',
+          //       show: true
+          //     }
+          //   ],
+          //   levels: [map]
+          // };
+
+          res.render('modules.ejs', {
+            modules: modules,
+            title: 'Available Learning Modules',
+            message: req.flash('moduleMsg')
+          });
+        }
       }
-    );
+    });//.lean(); //'lean' so Mongoose returns raw JS object, which can be modified
+  },
+  addModule: function (req, res, next) {
+    var moduleName, form, section, lessons;
+
+    moduleName = req.eduModule;
+    form = req.body;
+    section = form['x-coord'];
+    y = form['y-coord'];
+    locationTitle = form.title;
+    locationId = locationTitle.toLowerCase();
+    descriptionText = form.description;
+    linkUrl = form['link-url'];
+    linkText = form['link-text'];
+    category = form.category;
+    imgNames = form.images;
+
+    // Images need to be in form of an array
+    if (typeof imgNames === 'string') {
+      if (imgNames === '') {
+        imgNames = [];
+      } else {
+        imgNames = [imgNames];
+      }
+    }
+
+    newLocation = {
+      id: locationId,
+      title: locationTitle,
+      description: {
+        images: imgNames,
+        text: descriptionText,
+        link: {
+          text: linkText,
+          url: linkUrl
+        }
+      },
+      category: category,
+      x: x,
+      y: y,
+      pin: 'circular',
+      fill: 'red'
+    };
+
+    Mapa.findOne({'id': mapId},
+      function (err, map) {
+        if (err) {
+          req.flash('mapMsg', err);
+          res.redirect('/admin/mapas/' + mapId);
+
+        } else {
+          if (!map) {
+            req.flash('mapMsg', 'No se encontró ese mapa.');
+            res.redirect('/admin/mapas');
+
+          } else {
+            map.locations.push(newLocation);
+
+            map.save(function(err) {
+              if (err) {
+                req.flash('mapMsg', err);
+                res.redirect('/admin/mapas/' + mapId + '/puntos/agregar');
+
+              } else {
+                req.flash('mapMsg', 'Se agregó el punto nuevo.');
+                res.redirect('/admin/mapas/' + mapId);
+              }
+            });
+          }
+        }
+    });
+  },
+  getLocation: function (req, res, next) {
+    var mapId, locationId, i, thisLocation;
+
+    mapId = req.map;
+    locationId = req.location;
+
+    Mapa.findOne({'id': mapId}, function(err, map) {
+      if (err) {
+        req.flash('mapMsg', err);
+        res.redirect('/admin/mapas');
+
+      } else {
+        if (!map) {
+          req.flash('mapMsg', 'No se encontró el mapa.');
+          res.redirect('/admin/mapas');
+
+        } else {
+          i = 0;
+          while (map.locations[i].id !== locationId &&
+            i < map.locations.length) {
+            i++
+          }
+
+          thisLocation = map.locations[i];
+
+          res.render('admin-punto-editar.ejs', {
+            title: 'Editar punto',
+            x: thisLocation.x,
+            y: thisLocation.y,
+            locationTitle: thisLocation.title,
+            description: thisLocation.description.text,
+            linkText: thisLocation.description.link.text,
+            linkUrl: thisLocation.description.link.url,
+            category: thisLocation.category,
+            images: thisLocation.description.images
+          });
+        }
+      }
+    });
+  },
+  editLocation: function (req, res, next) {
+    var mapId, locationId, form, locationTitle, newLocationId, descriptionText,
+      linkUrl, linkText, category, imgNames, keyArray, key, keyString, i,
+      modifyLocation, x, y, locationImages, j, removed, k;
+
+    mapId = req.map;
+    locationId = req.location;
+    form = req.body;
+    locationTitle = form.title;
+    newLocationId = locationTitle.toLowerCase();
+    descriptionText = form.description;
+    linkUrl = form['link-url'];
+    linkText = form['link-text'];
+    category = form.category;
+    imgNames = form.images;
+
+    // Images need to be in form of an array
+    if (typeof imgNames === 'string') {
+      if (imgNames === '') {
+        imgNames = [];
+      } else {
+        imgNames = [imgNames];
+      }
+    }
+
+    keyArray = [];
+
+    // Create array of checked image names to remove from location images
+    for (key in form) {
+      if (key.search('remove-') >= 0) {
+        keyString = key.slice(7);
+        keyArray.push(keyString);
+      }
+    }
+
+    Mapa.findOne({'id': mapId},
+      function (err, map) {
+        if (err) {
+          req.flash('mapMsg', err);
+          res.redirect('/admin/mapas');
+
+        } else {
+          if (!map) {
+            req.flash('mapMsg', 'No se encontró ese mapa.');
+            res.redirect('/admin/mapas');
+
+          } else {
+            i = 0;
+            while (map.locations[i].id !== locationId &&
+              i < map.locations.length) {
+              i++
+            }
+
+            modifyLocation = map.locations[i];
+
+            x = modifyLocation.x
+            y = modifyLocation.y
+            locationImages = modifyLocation.description.images;
+
+            for (j = 0; j < locationImages.length; j++) {
+              removed = false
+
+              // Check location images array for removed images
+              for (k = 0; k < keyArray.length; k++) {
+                if (keyArray[k] === locationImages[j]) {
+                  keyArray.splice(k, 1);
+                  k--;
+                  removed = true
+                }
+              }
+
+              // If an image wasn't removed, add it to the new images array
+              if (!removed) {imgNames.push(locationImages[j]);}
+            }
+
+            // Modifying location object with dot notation, because Mongoose
+            // doesn't like literal notation
+            modifyLocation.id = newLocationId;
+            modifyLocation.title = locationTitle;
+            modifyLocation.category = category;
+            modifyLocation.description.images = imgNames;
+            modifyLocation.description.text = descriptionText;
+            modifyLocation.description.link.text = linkText;
+            modifyLocation.description.link.url = linkUrl;
+
+            map.save(function(err) {
+              if (err) {
+                req.flash('mapMsg', err);
+                res.redirect('/admin/mapas/' + mapId + '/puntos/' +
+                  locationId + '/editar');
+
+              } else {
+                req.flash('mapMsg', 'Se revisó el punto.');
+                res.redirect('/admin/mapas/' + mapId);
+              }
+            });
+          }
+        }
+    });
+  },
+  removeLocation: function (req, res, next) {
+    var mapId, locId, i, locationsLength;
+
+    mapId = req.map;
+    locId = req.location;
+
+    Mapa.findOne({'id': mapId},
+      function (err, map) {
+        if (err) {
+          req.flash('mapMsg', err);
+          res.redirect('/admin/mapas/' + mapId);
+
+        } else {
+          if (!map) {
+            req.flash('mapMsg', 'No se encontró ese mapa.');
+            res.redirect('/admin/mapas');
+
+          } else {
+            i = 0;
+            while (map.locations[i].id !== locId && i < map.locations.length) {
+              i++;
+            }
+            map.locations[i].remove();
+
+            map.save(function(err) {
+              if (err) {
+                req.flash('mapMsg', err);
+                res.redirect('/admin/mapas/' + mapId);
+
+              } else {
+                req.flash('mapMsg', 'Se borró el punto.');
+                res.redirect('/admin/mapas/' + mapId);
+              }
+            });
+          }
+        }
+    });
   }
 };
