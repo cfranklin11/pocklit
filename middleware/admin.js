@@ -30,10 +30,14 @@ self = module.exports = {
     });
   },
   addLanguage: function(req, res, next) {
-    var form,langName;
+    var inputs,langName, langPath;
 
-    form = req.body;
-    langName = form.name;
+    console.log(req.body);
+
+    inputs = req.body;
+
+    langName = inputs.name;
+    langPath = inputs.path;
 
     Language.findOne({'name': langName},
       function (err, language) {
@@ -49,6 +53,7 @@ self = module.exports = {
           } else {
             language = new Language({
               name: langName,
+              map: langPath,
               reading: [],
               numbers: []
             });
