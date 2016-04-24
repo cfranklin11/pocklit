@@ -2,14 +2,13 @@
 <html>
 
   <head>
-    <title>Yarn Ball</title>
+    <title>Languages</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
   </head>
 
   <body>
 
-    <a href="/logout">Logout</a>
-    <a href="/admin">Admin</a>
+    <a href="/">Home</a>
 
     <h1>Languages</h1>
 
@@ -34,7 +33,7 @@
             <% for ( var i = 0; i < languages.length; i++ ) { %>
                 <tr>
                   <td>
-                    <a href=<%= "/admin/languages/" + encodeURIComponent( languages[ i ].name) %>>
+                    <a href="/admin/languages/<%= encodeURIComponent( languages[ i ].name)%>/modules">
                       <%= languages[ i ].name %>
                     </a>
                   </td>

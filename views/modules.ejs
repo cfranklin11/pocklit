@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+
+  <head>
+    <title><%= name %> Modules</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+  </head>
+
+  <body>
+
+    <a href="/">Home</a>
+
+    <h1>Modules in <%= name %></h1>
+
+    <div class="container">
+      <div class="col-sm-6 col-sm-offset-3">
+
+        <!-- show any messages that come back after action -->
+        <% if (message.length > 0) { %>
+            <div class="alert alert-danger"><%= message %></div>
+        <% } %>
+
+        <a href="/admin/languages/<%= name %>/modules/create">Add New Module</a>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Reading Modules</th>
+              <th>Numbers Modules</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            <% for ( var i = 0; i < Math.min(reading.length, numbers.length); i++ ) { %>
+                <tr>
+                  <td>
+                    <a><%= reading[ i ] %></a>
+                  </td>
+                  <td>
+                    <a><%= numbers[ i ] %></a>
+                  </td>
+                </tr>
+            <% } %>
+
+            <% for ( var j = i; j < Math.max(reading.length, numbers.length); j++ ) { %>
+                <tr>
+                  <td>
+                    <% if (reading[j]) { %>
+                      <a><%= reading[j] %></a>
+                    <% } %>
+                  </td>
+                  <td>
+                    <% if (numbers[j]) { %>
+                      <a><%= numbers[j] %></a>
+                    <% } %>
+                 </td>
+                </tr>
+            <% } %>
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </body>
+</html>

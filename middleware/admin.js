@@ -30,70 +30,37 @@ self = module.exports = {
     });
   },
   addLanguage: function(req, res, next) {
-    var form,langName, lessons;
+    var form,langName;
 
     form = req.body;
     langName = form.name;
 
-    section = form['x-coord'];
-    y = form['y-coord'];
-    locationTitle = form.title;
-    locationId = locationTitle.toLowerCase();
-    descriptionText = form.description;
-    linkUrl = form['link-url'];
-    linkText = form['link-text'];
-    category = form.category;
-    imgNames = form.images;
-
-    // Images need to be in form of an array
-    if (typeof imgNames === 'string') {
-      if (imgNames === '') {
-        imgNames = [];
-      } else {
-        imgNames = [imgNames];
-      }
-    }
-
-    newLocation = {
-      id: locationId,
-      title: locationTitle,
-      description: {
-        images: imgNames,
-        text: descriptionText,
-        link: {
-          text: linkText,
-          url: linkUrl
-        }
-      },
-      category: category,
-      x: x,
-      y: y,
-      pin: 'circular',
-      fill: 'red'
-    };
-
-    Mapa.findOne({'id': mapId},
-      function (err, map) {
+    Language.findOne({'name': langName},
+      function (err, language) {
         if (err) {
-          req.flash('mapMsg', err);
-          res.redirect('/admin/mapas/' + mapId);
+          req.flash('langMsg', err);
+          res.redirect('/admin/languages');
 
         } else {
-          if (!map) {
-            req.flash('mapMsg', 'No se encontró ese mapa.');
-            res.redirect('/admin/mapas');
+          if (language) {
+            req.flash('langMsg', 'That language already exists. Please edit existing language instead.');
+            res.redirect('/admin/languages');
 
           } else {
-            map.locations.push(newLocation);
+            language = new Language({
+              name: langName,
+              reading: [],
+              numbers: []
+            });
 
-            map.save(function(err) {
+            language.save(function(err) {
               if (err) {
-                req.flash('mapMsg', err);
-                res.redirect('/admin/mapas/' + mapId + '/puntos/agregar');
+                req.flash('langMsg', err);
+                res.redirect('/admin/languages');
 
               } else {
-                req.flash('mapMsg', 'Se agregó el punto nuevo.');
-                res.redirect('/admin/mapas/' + mapId);
+                req.flash('langMsg', 'New language added.');
+                res.redirect('/admin/languages');
               }
             });
           }
@@ -101,10 +68,10 @@ self = module.exports = {
     });
   },
   getModules: function (req, res, next) {
-    var langName, modules, modulesLength, i, module;
+    var langName, readModules, numModules, readLength, numLength, readArray,
+      numArray, i, moduleIndex;
 
     langName = req.eduLanguage;
-    // descArray = [];
 
     Language.findOne({'name': langName}, function (err, language) {
       if (err) {
@@ -115,65 +82,33 @@ self = module.exports = {
         if (!language) {
           req.flash('langMsg', 'Language not found.');
           res.redirect('/admin/languages');
+
         } else {
+          readModules = language.reading;
+          numModules = language.numbers;
+          readLength = readModules.length;
+          numLength = numModules.length;
+          readArray = [];
+          numArray = [];
 
-          // Build description string from location description object,
-          // so it will play nice with mapplic plugin
-          modules = language.modules;
-          // modulesLength = modules.length;
+          for (i = 0; i < readLength; i++) {
+            moduleIndex = readModules[i].index;
+            readArray[moduleIndex] = moduleIndex;
+          }
 
-          // for (i = 0; i < modulesLength; i++) {
-          //   module = modules[i];
-            // descString = '<p>';
-            // desc = location.description;
-            // imgs = desc.images;
-            // imgsLength = imgs.length;
+          readArray.sort(function(a, b) {a - b});
 
-            // for (j = 0; j < imgsLength; j++) {
-            //   descString += '<img src="' + imgs[j] + '">';
-            // }
+          for (i = 0; i < numLength; i++) {
+            moduleIndex = numModules[i].index;
+            numArray[moduleIndex] = moduleIndex;
+          }
 
-            // descString += '<br>' + desc.text;
-
-            // if (desc.link) {
-            //   descString += ' <a href="' + desc.link.url +
-            //     '" target="_blank">' + desc.link.text + '</a></p>';
-            // } else {
-            //   descString += '</p>';
-            // }
-
-            // map.locations[i].description = descString;
-          // }
-
-          // Object formatted according to mapplic
-          // mapplicObj = {
-          //   mapwidth: 640,
-          //   mapheight: 600,
-          //   categories: [
-          //     {
-          //       id: 'naturaleza',
-          //       title: 'Naturaleza',
-          //       color: '#4cd3b8',
-          //       show: true
-          //     },
-          //     {
-          //       id: 'servicios',
-          //       title: 'Servicios',
-          //       color: '#80D316',
-          //       show: true
-          //     },
-          //     {
-          //       id: 'ciudades',
-          //       title: 'Ciudades',
-          //       color: '#63aa9c',
-          //       show: true
-          //     }
-          //   ],
-          //   levels: [map]
-          // };
+          numArray.sort(function(a, b) {a - b});
 
           res.render('modules.ejs', {
-            modules: modules,
+            reading: readArray,
+            numbers: numArray,
+            name: langName,
             title: 'Available Learning Modules',
             message: req.flash('moduleMsg')
           });
