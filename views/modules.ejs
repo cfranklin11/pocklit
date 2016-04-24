@@ -20,6 +20,8 @@
             <div class="alert alert-danger"><%= message %></div>
         <% } %>
 
+        <div id="googleMap" style="width:500px;height:380px;"></div>
+
         <a href="/admin/languages/<%= name %>/modules/create">Add New Module</a>
 
         <table>
@@ -61,6 +63,15 @@
         </table>
       </div>
     </div>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script>var dataMap</script>
+    <% if (map) { %>
+      <script>dataMap = '<%= map %>'</script>
+    <% } %>
+    <script src="/javascripts/map-helper.js"></script>
+    <!-- GOOGLE MAP LIBRARY -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDF4lZ1KiV2-dLwV3V32dfG5nA9alMaCfk&libraries=geometry&callback=initMap" async defer></script>
 
   </body>
 </html>
