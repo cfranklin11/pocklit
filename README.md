@@ -5,7 +5,7 @@ Server-side admin app & API for the Pocklit Mobile Education App for #SpaceApps 
 
 Built with node.js, express.js, Google Maps API;
 
-Mobile app repo can be found here: https://github.com/cfranklin11/pocklit-backend
+Mobile app repo can be found here: https://github.com/cfranklin11/pocklit-mobile
 
 This app is hosted here: https://pocklit.herokuapp.com
 
