@@ -14,9 +14,9 @@ module.exports = function ( app, passport ) {
   app.get( '/', function ( req, res ) {
     res.render( 'index', { message: req.flash( 'adminMsg' )});
   });
-  app.get('/upload', function(req, res, next) {
-    adminHelper.uploadData(req, res, next);
-  });
+  // app.get('/upload', function(req, res, next) {
+  //   adminHelper.uploadData(req, res, next);
+  // });
 
   // =====================================
   // ADMIN ==============================
@@ -35,6 +35,9 @@ module.exports = function ( app, passport ) {
   // LANGUAGE ADMIN
   app.get( '/admin/languages', function ( req, res ) {
     adminHelper.getLanguages( req, res );
+  });
+  app.get( '/admin/languages/create', function ( req, res ) {
+    res.render( 'language-create', { message: req.flash( 'langMsg' )});
   });
   app.post( '/admin/languages', function ( req, res ) {
     adminHelper.addLanguage( req, res );
