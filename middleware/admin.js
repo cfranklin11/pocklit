@@ -431,7 +431,8 @@ self = module.exports = {
   },
   uploadData: function(req, res, next) {
     var parser, i, thisData, langName, thisSection, thisModule, langObject,
-      langArray, modules, moduleLength, j, match, item;
+      langArray, modules, moduleLength, j, moduleMatch, lessonMatch, lessons, lessonsLength,
+      k, item;
 
     langObject = {};
     langArray = [];
@@ -440,37 +441,54 @@ self = module.exports = {
 
       for (i = 0; i < data.length; i++) {
         thisData = data[i];
-        langName = thisData.language-name;
-        thisSection = thisData.module-section;
+        langName = thisData['language-name'];
+        thisSection = thisData['module-section'];
         thisModule = {
-          index: thisData.module-index,
+          index: thisData['module-index'],
           section: thisSection,
-          reception: {text: thisData.reception-text},
-          textInput: {
-            options: [{
-              text: thisData.textInput-option-text,
-              correct: thisData.textInput-option-correct
-            }]
-          },
-          voiceInput: {text: thisData.voiceInput-text}
+          lessons: [{
+            reception: {text: thisData['reception-text']},
+            textInput: {
+              options: [{
+                text: thisData['textInput-option-text'],
+                correct: thisData['textInput-option-correct']
+              }]
+            },
+            voiceInput: {text: thisData['voiceInput-text']}
+          }]
         };
 
         if (langObject[langName]) {
           if (langObject[langName][thisSection]) {
             modules = langObject[langName][thisSection];
             moduleLength = modules.length;
+            moduleMatch = false;
 
             for (j = 0; j < moduleLength; j++) {
-              match = false;
-
               if (modules[j].index === thisModule.index) {
-                langObject[langName][thisSection][j].options.push(thisModule.options[0]);
-                match = true;
+                moduleMatch = true;
+                lessonMatch = false;
+                lessons = modules[j].lessons;
+                lessonsLength = lessons.length;
+
+                for (k = 0; k < lessonsLength; k++) {
+                  if (lessons[k].reception.text === thisModule.lessons[0].reception.text) {
+                    lessonMatch = true;
+                    langObject[langName][thisSection][j].lessons[k].textInput.options.push(
+                      thisModule.lessons[0].textInput.options[0]
+                    );
+                    break;
+                  }
+                }
+
+                if (!lessonMatch) {
+                  langObject[langName][thisSection][j].lessons.push(thisModule.lessons[0]);
+                }
                 break;
               }
             }
 
-            if (!match) {
+            if (!moduleMatch) {
               langObject[langName][thisSection].push(thisModule);
             }
 
