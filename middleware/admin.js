@@ -30,42 +30,46 @@ self = module.exports = {
     });
   },
   addLanguage: function(req, res, next) {
-    var form,langName;
+    var inputs,langName;
 
-    form = req.body;
-    langName = form.name;
+    inputs = req.body['data[]'];
 
-    Language.findOne({'name': langName},
-      function (err, language) {
-        if (err) {
-          req.flash('langMsg', err);
-          res.redirect('/admin/languages');
+    console.log(inputs.paths);
+    langName = inputs.name;
+    langPaths = JSON.parse(inputs.paths);
+    console.log(inputs.paths);
 
-        } else {
-          if (language) {
-            req.flash('langMsg', 'That language already exists. Please edit existing language instead.');
-            res.redirect('/admin/languages');
+    // Language.findOne({'name': langName},
+    //   function (err, language) {
+    //     if (err) {
+    //       req.flash('langMsg', err);
+    //       res.redirect('/admin/languages');
 
-          } else {
-            language = new Language({
-              name: langName,
-              reading: [],
-              numbers: []
-            });
+    //     } else {
+    //       if (language) {
+    //         req.flash('langMsg', 'That language already exists. Please edit existing language instead.');
+    //         res.redirect('/admin/languages');
 
-            language.save(function(err) {
-              if (err) {
-                req.flash('langMsg', err);
-                res.redirect('/admin/languages');
+    //       } else {
+    //         language = new Language({
+    //           name: langName,
+    //           reading: [],
+    //           numbers: []
+    //         });
 
-              } else {
-                req.flash('langMsg', 'New language added.');
-                res.redirect('/admin/languages');
-              }
-            });
-          }
-        }
-    });
+    //         language.save(function(err) {
+    //           if (err) {
+    //             req.flash('langMsg', err);
+    //             res.redirect('/admin/languages');
+
+    //           } else {
+    //             req.flash('langMsg', 'New language added.');
+    //             res.redirect('/admin/languages');
+    //           }
+    //         });
+    //       }
+    //     }
+    // });
   },
   getModules: function (req, res, next) {
     var langName, readModules, numModules, readLength, numLength, readArray,

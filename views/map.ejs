@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pocklit: Add New Language</title>
+
+    <!-- load bootstrap css -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+  </head>
+  <body>
+
+    <h1>Create a new Language</h1>
+    <form method="post" action="/admin/languages">
+
+      <label for="name">Language Name</label>
+      <input type="text" name="name" id="name-input">
+
+      <button type="submit" id="submit-input">Submit</button>
+    </form>
+
+    <div id="googleMap" style="width:500px;height:380px;"></div>
+
+    <!-- GOOGLE MAP LIBRARY -->
+    <!-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDF4lZ1KiV2-dLwV3V32dfG5nA9alMaCfk&callback=initMap" async defer></script> -->
+    <script src="http://maps.googleapis.com/maps/api/js"></script>
+    <script src="/javascripts/map-helper.js"></script>
+  </body>
+</html>
