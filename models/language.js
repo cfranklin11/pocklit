@@ -7,6 +7,7 @@ moduleSchema = require('./module.js');
 
 languageSchema = mongoose.Schema({
   name: String,
+  map: String,
   reading: [moduleSchema],
   numbers: [moduleSchema]
 });

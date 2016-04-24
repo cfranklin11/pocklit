@@ -30,25 +30,30 @@ self = module.exports = {
     });
   },
   addLanguage: function(req, res, next) {
-    var form,langName;
+    var inputs,langName, langPath;
 
-    form = req.body;
-    langName = form.name;
+    console.log(req.body);
+
+    inputs = req.body;
+
+    langName = inputs.name;
+    langPath = inputs.path;
 
     Language.findOne({'name': langName},
       function (err, language) {
         if (err) {
           req.flash('langMsg', err);
-          res.redirect('/admin/languages');
+          res.json(err);
 
         } else {
           if (language) {
             req.flash('langMsg', 'That language already exists. Please edit existing language instead.');
-            res.redirect('/admin/languages');
+            res.json('That language already exists. Please edit existing language instead.');
 
           } else {
             language = new Language({
               name: langName,
+              map: langPath,
               reading: [],
               numbers: []
             });
@@ -56,11 +61,11 @@ self = module.exports = {
             language.save(function(err) {
               if (err) {
                 req.flash('langMsg', err);
-                res.redirect('/admin/languages');
+                res.json(err);
 
               } else {
                 req.flash('langMsg', 'New language added.');
-                res.redirect('/admin/languages');
+                res.json(language);
               }
             });
           }
@@ -68,7 +73,7 @@ self = module.exports = {
     });
   },
   getModules: function (req, res, next) {
-    var langName, readModules, numModules, readLength, numLength, readArray,
+    var langName, map, readModules, numModules, readLength, numLength, readArray,
       numArray, i, moduleIndex;
 
     langName = req.eduLanguage;
@@ -84,6 +89,7 @@ self = module.exports = {
           res.redirect('/admin/languages');
 
         } else {
+          map = language.map;
           readModules = language.reading;
           numModules = language.numbers;
           readLength = readModules.length;
@@ -109,260 +115,13 @@ self = module.exports = {
             reading: readArray,
             numbers: numArray,
             name: langName,
+            map: map,
             title: 'Available Learning Modules',
             message: req.flash('moduleMsg')
           });
         }
       }
     });//.lean(); //'lean' so Mongoose returns raw JS object, which can be modified
-  },
-  addModule: function (req, res, next) {
-    var moduleName, form, section, lessons;
-
-    moduleName = req.eduModule;
-    form = req.body;
-    section = form['x-coord'];
-    y = form['y-coord'];
-    locationTitle = form.title;
-    locationId = locationTitle.toLowerCase();
-    descriptionText = form.description;
-    linkUrl = form['link-url'];
-    linkText = form['link-text'];
-    category = form.category;
-    imgNames = form.images;
-
-    // Images need to be in form of an array
-    if (typeof imgNames === 'string') {
-      if (imgNames === '') {
-        imgNames = [];
-      } else {
-        imgNames = [imgNames];
-      }
-    }
-
-    newLocation = {
-      id: locationId,
-      title: locationTitle,
-      description: {
-        images: imgNames,
-        text: descriptionText,
-        link: {
-          text: linkText,
-          url: linkUrl
-        }
-      },
-      category: category,
-      x: x,
-      y: y,
-      pin: 'circular',
-      fill: 'red'
-    };
-
-    Mapa.findOne({'id': mapId},
-      function (err, map) {
-        if (err) {
-          req.flash('mapMsg', err);
-          res.redirect('/admin/mapas/' + mapId);
-
-        } else {
-          if (!map) {
-            req.flash('mapMsg', 'No se encontró ese mapa.');
-            res.redirect('/admin/mapas');
-
-          } else {
-            map.locations.push(newLocation);
-
-            map.save(function(err) {
-              if (err) {
-                req.flash('mapMsg', err);
-                res.redirect('/admin/mapas/' + mapId + '/puntos/agregar');
-
-              } else {
-                req.flash('mapMsg', 'Se agregó el punto nuevo.');
-                res.redirect('/admin/mapas/' + mapId);
-              }
-            });
-          }
-        }
-    });
-  },
-  getLocation: function (req, res, next) {
-    var mapId, locationId, i, thisLocation;
-
-    mapId = req.map;
-    locationId = req.location;
-
-    Mapa.findOne({'id': mapId}, function(err, map) {
-      if (err) {
-        req.flash('mapMsg', err);
-        res.redirect('/admin/mapas');
-
-      } else {
-        if (!map) {
-          req.flash('mapMsg', 'No se encontró el mapa.');
-          res.redirect('/admin/mapas');
-
-        } else {
-          i = 0;
-          while (map.locations[i].id !== locationId &&
-            i < map.locations.length) {
-            i++
-          }
-
-          thisLocation = map.locations[i];
-
-          res.render('admin-punto-editar.ejs', {
-            title: 'Editar punto',
-            x: thisLocation.x,
-            y: thisLocation.y,
-            locationTitle: thisLocation.title,
-            description: thisLocation.description.text,
-            linkText: thisLocation.description.link.text,
-            linkUrl: thisLocation.description.link.url,
-            category: thisLocation.category,
-            images: thisLocation.description.images
-          });
-        }
-      }
-    });
-  },
-  editLocation: function (req, res, next) {
-    var mapId, locationId, form, locationTitle, newLocationId, descriptionText,
-      linkUrl, linkText, category, imgNames, keyArray, key, keyString, i,
-      modifyLocation, x, y, locationImages, j, removed, k;
-
-    mapId = req.map;
-    locationId = req.location;
-    form = req.body;
-    locationTitle = form.title;
-    newLocationId = locationTitle.toLowerCase();
-    descriptionText = form.description;
-    linkUrl = form['link-url'];
-    linkText = form['link-text'];
-    category = form.category;
-    imgNames = form.images;
-
-    // Images need to be in form of an array
-    if (typeof imgNames === 'string') {
-      if (imgNames === '') {
-        imgNames = [];
-      } else {
-        imgNames = [imgNames];
-      }
-    }
-
-    keyArray = [];
-
-    // Create array of checked image names to remove from location images
-    for (key in form) {
-      if (key.search('remove-') >= 0) {
-        keyString = key.slice(7);
-        keyArray.push(keyString);
-      }
-    }
-
-    Mapa.findOne({'id': mapId},
-      function (err, map) {
-        if (err) {
-          req.flash('mapMsg', err);
-          res.redirect('/admin/mapas');
-
-        } else {
-          if (!map) {
-            req.flash('mapMsg', 'No se encontró ese mapa.');
-            res.redirect('/admin/mapas');
-
-          } else {
-            i = 0;
-            while (map.locations[i].id !== locationId &&
-              i < map.locations.length) {
-              i++
-            }
-
-            modifyLocation = map.locations[i];
-
-            x = modifyLocation.x
-            y = modifyLocation.y
-            locationImages = modifyLocation.description.images;
-
-            for (j = 0; j < locationImages.length; j++) {
-              removed = false
-
-              // Check location images array for removed images
-              for (k = 0; k < keyArray.length; k++) {
-                if (keyArray[k] === locationImages[j]) {
-                  keyArray.splice(k, 1);
-                  k--;
-                  removed = true
-                }
-              }
-
-              // If an image wasn't removed, add it to the new images array
-              if (!removed) {imgNames.push(locationImages[j]);}
-            }
-
-            // Modifying location object with dot notation, because Mongoose
-            // doesn't like literal notation
-            modifyLocation.id = newLocationId;
-            modifyLocation.title = locationTitle;
-            modifyLocation.category = category;
-            modifyLocation.description.images = imgNames;
-            modifyLocation.description.text = descriptionText;
-            modifyLocation.description.link.text = linkText;
-            modifyLocation.description.link.url = linkUrl;
-
-            map.save(function(err) {
-              if (err) {
-                req.flash('mapMsg', err);
-                res.redirect('/admin/mapas/' + mapId + '/puntos/' +
-                  locationId + '/editar');
-
-              } else {
-                req.flash('mapMsg', 'Se revisó el punto.');
-                res.redirect('/admin/mapas/' + mapId);
-              }
-            });
-          }
-        }
-    });
-  },
-  removeLocation: function (req, res, next) {
-    var mapId, locId, i, locationsLength;
-
-    mapId = req.map;
-    locId = req.location;
-
-    Mapa.findOne({'id': mapId},
-      function (err, map) {
-        if (err) {
-          req.flash('mapMsg', err);
-          res.redirect('/admin/mapas/' + mapId);
-
-        } else {
-          if (!map) {
-            req.flash('mapMsg', 'No se encontró ese mapa.');
-            res.redirect('/admin/mapas');
-
-          } else {
-            i = 0;
-            while (map.locations[i].id !== locId && i < map.locations.length) {
-              i++;
-            }
-            map.locations[i].remove();
-
-            map.save(function(err) {
-              if (err) {
-                req.flash('mapMsg', err);
-                res.redirect('/admin/mapas/' + mapId);
-
-              } else {
-                req.flash('mapMsg', 'Se borró el punto.');
-                res.redirect('/admin/mapas/' + mapId);
-              }
-            });
-          }
-        }
-    });
   },
   uploadData: function(req, res, next) {
     var parser, i, thisData, langName, thisSection, thisModule, langObject,
