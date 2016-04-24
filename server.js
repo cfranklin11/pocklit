@@ -1,6 +1,6 @@
 'use strict';
 
-var session, passport, flash;
+var session, passport, flash, mongoose, config;
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
@@ -16,18 +16,6 @@ var bodyParser = require('body-parser');
 var port = process.env.PORT || 3000;
 var app = express();
 
-//Connect to database
-// mongoose.connect( configAuth.url );
-require('./middleware/passport')(passport); // pass passport for configuration
-app.use(session({
-  secret: config.secret,
-  resave: false,
-  saveUninitialized: false
-}));
-app.use(passport.initialize());
-app.use(passport.session()); // persistent login sessions
-app.use(flash()); // use connect-flash for flash messages stored in session
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -40,7 +28,22 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-require('./routes/index.js')(app);
+//Connect to database
+mongoose.connect( configAuth.url );
+
+// Configure passport & sessions
+require('./middleware/passport')(passport);
+app.use(session({
+  secret: config.secret,
+  resave: false,
+  saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
+
+// Routes
+require('./routes/index.js')(app, passport);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -2,8 +2,8 @@
 
 var adminHelper, configAuth;
 
-adminHelper = require( './middleware/admin.js' );
-configAuth = require( './config/auth.js' );
+adminHelper = require( '../middleware/admin.js' );
+configAuth = require( '../config/auth.js' );
 
 module.exports = function ( app, passport ) {
 
@@ -12,7 +12,7 @@ module.exports = function ( app, passport ) {
   // =====================================
 
   app.get( '/', function ( req, res ) {
-    res.render( 'index.ejs', { message: req.flash( 'loginMsg' )});
+    res.render( 'index', { message: req.flash( 'loginMsg' )});
   });
 
   // process the login form
@@ -24,7 +24,7 @@ module.exports = function ( app, passport ) {
 
   app.post( '/login', function(req, res, next) {
     res.redirect('/admin');
-  }));
+  });
 
   // =====================================
   // SIGNUP ==============================
@@ -64,7 +64,7 @@ module.exports = function ( app, passport ) {
 
   // ADMIN
   app.get( '/admin', function ( req, res ) {
-    res.render( 'admin.ejs', { message: req.flash( 'adminMsg' )});
+    res.render( 'admin', { message: req.flash( 'adminMsg' )});
   });
 
   // LANGUAGE ADMIN
@@ -85,7 +85,7 @@ module.exports = function ( app, passport ) {
   app.post( '/admin/languages/:language/modules', function ( req, res ) {
     adminHelper.addModule( req, res );
   });
-  app.get( '/admin/languages/:language/modules/:module'), function(req, res) {
+  app.get( '/admin/languages/:language/modules/:module', function(req, res) {
     adminHelper.getModule(req, res);
   });
   app.post( '/admin/languages/:language/modules/:module/delete',
