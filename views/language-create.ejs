@@ -5,16 +5,22 @@
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
   </head>
   <body>
-    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
 
-      <h1>Create a new Language</h1>
-      <form method="post" action="/admin/languages">
+    <h1>Create a new Language</h1>
+    <form method="post" action="/admin/languages">
 
-        <label for="name">Language Name</label>
-        <input type="text" name="name" id="name-input">
+      <label for="name">Language Name</label>
+      <input type="text" name="name" id="name-input">
 
-        <button type="submit" id="submit-input">Submit</button>
-      </form>
-    </div>
+      <button type="submit" id="submit-input">Submit</button>
+    </form>
+
+    <div id="googleMap" style="width:500px;height:380px;"></div>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+    <script>var dataMap</script>
+    <script src="/javascripts/map-helper.js"></script>
+    <!-- GOOGLE MAP LIBRARY -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDF4lZ1KiV2-dLwV3V32dfG5nA9alMaCfk&libraries=geometry&callback=initMap" async defer></script>
   </body>
 </html>

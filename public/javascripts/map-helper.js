@@ -1,36 +1,33 @@
 'use strict';
 
-var myMapArea;
+function initMap() {
+  var mapProp, map, mapMarkers, coordinates, thisShape, thisArea, myMapArea;
 
-(function() {
-  function initMap(element, shape) {
-    var mapProp, map, mapMarkers, coordinates, thisShape, thisArea;
+  mapProp = {
+    center:new google.maps.LatLng(51.508742,-0.120850),
+    zoom:5,
+    mapTypeId:google.maps.MapTypeId.HYBRID
+  };
+  map=new google.maps.Map(document.getElementById('googleMap'),mapProp);
 
-    mapProp = {
-      center:new google.maps.LatLng(51.508742,-0.120850),
-      zoom:5,
-      mapTypeId:google.maps.MapTypeId.HYBRID
-    };
-    map=new google.maps.Map(document.getElementById(element),mapProp);
-
-    mapMarkers = [];
-    coordinates = [];
+  mapMarkers = [];
+  coordinates = [];
 
 
-    if (shape) {
-      thisShape = google.maps.geometry.encoding.decodePath(shape);
-      thisArea=new google.maps.Polygon({
-        path: thisShape,
-        map: map,
-        editable: true,
-        draggable: true,
-        strokeColor:"#0000FF",
-        strokeOpacity:0.8,
-        strokeWeight:2,
-        fillColor:"#0000FF",
-        fillOpacity:0.4
-      });
-    }
+  if (dataMap) {
+    thisShape = google.maps.geometry.encoding.decodePath(dataMap);
+    thisArea=new google.maps.Polygon({
+      path: thisShape,
+      map: map,
+      editable: true,
+      draggable: true,
+      strokeColor:"#0000FF",
+      strokeOpacity:0.8,
+      strokeWeight:2,
+      fillColor:"#0000FF",
+      fillOpacity:0.4
+    });
+  } else {
 
     map.addListener('rightclick', function(event) {
       var position, marker;
@@ -98,7 +95,6 @@ var myMapArea;
         });
 
         google.maps.event.addListener(myMapArea, 'dragend', function(){
-          console.log(myMapArea.getPaths());
           sessionStorage.setItem('paths', JSON.stringify(myMapArea.getPaths()));
         });
 
@@ -107,38 +103,37 @@ var myMapArea;
         });
       });
     });
+
+    $('form').submit(function(event) {
+      var name, path;
+
+      event.preventDefault();
+
+      if (!myMapArea) {
+        alert('Please select an area of the map where your language is spoken.');
+
+      } else {
+        name = $('#name-input').val();
+        path = myMapArea.getPath();
+        path = google.maps.geometry.encoding.encodePath(path);
+
+        $.post({
+          type: 'POST',
+          url: '/admin/languages',
+          data: {
+            name: name,
+            path: path
+          },
+          success: function(res) {
+            console.log(res);
+            location.pathname='/admin/languages';
+          },
+          error: function(res) {
+            console.log(res);
+            location.pathname='/admin/languages';
+          }
+        });
+      }
+    });
   }
-
-  google.maps.event.addDomListener(window, 'load', initMap('googleMap'));
-
-
-  $('form').submit(function(event) {
-    var name, path;
-
-    event.preventDefault();
-
-    if (!myMapArea) {
-      alert('Please select an area of the map where your language is spoken.');
-
-    } else {
-      name = $('#name-input').val();
-      path = myMapArea.getPath();
-      path = google.maps.geometry.encoding.encodePath(path);
-
-      $.post({
-        type: 'POST',
-        url: '/admin/languages',
-        data: {
-          name: name,
-          path: path
-        },
-        success: function(res) {
-          console.log(res);
-        },
-        error: function(res) {
-          console.log(res);
-        }
-      });
-    }
-  });
-})();
+}
