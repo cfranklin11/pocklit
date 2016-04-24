@@ -1,9 +1,17 @@
+'use strict';
+
+var session, passport, flash, mongoose, config;
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+  session = require( 'express-session' );
+  passport = require( 'passport' );
+  flash = require( 'connect-flash' );
+  mongoose = require('mongoose');
+  config = require('./config/auth.js');
 
 var port = process.env.PORT || 3000;
 var app = express();
@@ -20,7 +28,19 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-require('./routes/index.js')(app);
+//Connect to database
+mongoose.connect( config.url );
+
+// Configure sessions
+app.use(session({
+  secret: config.secret,
+  resave: false,
+  saveUninitialized: false
+}));
+app.use(flash());
+
+// Routes
+require('./routes/index.js')(app, passport);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

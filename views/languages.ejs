@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+
+  <head>
+    <title>Languages</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+  </head>
+
+  <body>
+
+    <a href="/">Home</a>
+
+    <h1>Languages</h1>
+
+    <div class="container">
+      <div class="col-sm-6 col-sm-offset-3">
+
+        <!-- show any messages that come back after action -->
+        <% if (message.length > 0) { %>
+            <div class="alert alert-danger"><%= message %></div>
+        <% } %>
+
+        <a href="/admin/languages/create">Add New Language</a>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Language</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            <% for ( var i = 0; i < languages.length; i++ ) { %>
+                <tr>
+                  <td>
+                    <a href="/admin/languages/<%= encodeURIComponent( languages[ i ].name)%>/modules">
+                      <%= languages[ i ].name %>
+                    </a>
+                  </td>
+                </tr>
+            <% } %>
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </body>
+</html>
