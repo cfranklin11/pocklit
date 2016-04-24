@@ -16,6 +16,5 @@ if (fs.existsSync(envFile)) {
 
 module.exports = {
   'url' : process.env.DB_URL,
-  'secret': process.env.SECRET,
-  'admin': process.env.ADMIN
+  'secret': process.env.SECRET
 };

@@ -10,12 +10,12 @@ self = module.exports = {
       function (err, languages) {
         if (err) {
           req.flash('adminMsg', err);
-          res.redirect('/admin');
+          res.redirect('/');
 
         } else {
           if (!languages) {
             req.flash('adminMsg', 'No languages found.');
-            res.redirect('/admin');
+            res.redirect('/');
 
          } else {
             res.render('languages.ejs', {

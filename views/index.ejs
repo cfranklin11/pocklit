@@ -2,7 +2,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Pocklit Login</title>
+    <title>Pocklit Admin</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
   </head>
 
@@ -15,10 +15,8 @@
             <div class="alert alert-danger"><%= message %></div>
         <% } %>
 
-        <!-- LOGIN FORM -->
-        <form action="/login" method="post">
-          <button type="submit" class="btn btn-warning btn-lg">Login</button>
-        </form>
+        <h1>Pocklit Admin Page</h1>
+        <a href="/admin/languages"><p>View Available Languages</p></a>
 
       </div>
     </div>

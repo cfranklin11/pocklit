@@ -29,17 +29,14 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 //Connect to database
-mongoose.connect( configAuth.url );
+mongoose.connect( config.url );
 
-// Configure passport & sessions
-require('./middleware/passport')(passport);
+// Configure sessions
 app.use(session({
   secret: config.secret,
   resave: false,
   saveUninitialized: false
 }));
-app.use(passport.initialize());
-app.use(passport.session());
 app.use(flash());
 
 // Routes
