@@ -1,7 +1,9 @@
 'use strict';
 
-var Language, self;
+var fs, parse, Language, self;
 
+fs = require('fs');
+parse = require('csv-parse');
 Language = require('../models/language.js');
 
 self = module.exports = {
@@ -426,5 +428,77 @@ self = module.exports = {
           }
         }
     });
+  },
+  uploadData: function(req, res, next) {
+    var parser, i, thisData, langName, thisSection, thisModule, langObject,
+      langArray, modules, moduleLength, j, match, item;
+
+    langObject = {};
+    langArray = [];
+
+    parser = parse({delimiter: ',', columns: true}, function(err, data){
+
+      for (i = 0; i < data.length; i++) {
+        thisData = data[i];
+        langName = thisData.language-name;
+        thisSection = thisData.module-section;
+        thisModule = {
+          index: thisData.module-index,
+          section: thisSection,
+          reception: {text: thisData.reception-text},
+          textInput: {
+            options: [{
+              text: thisData.textInput-option-text,
+              correct: thisData.textInput-option-correct
+            }]
+          },
+          voiceInput: {text: thisData.voiceInput-text}
+        };
+
+        if (langObject[langName]) {
+          if (langObject[langName][thisSection]) {
+            modules = langObject[langName][thisSection];
+            moduleLength = modules.length;
+
+            for (j = 0; j < moduleLength; j++) {
+              match = false;
+
+              if (modules[j].index === thisModule.index) {
+                langObject[langName][thisSection][j].options.push(thisModule.options[0]);
+                match = true;
+                break;
+              }
+            }
+
+            if (!match) {
+              langObject[langName][thisSection].push(thisModule);
+            }
+
+          } else {
+            langObject[langName][thisSection] = [thisModule];
+          }
+
+        } else {
+          langObject[langName] = {name: langName};
+          langObject[langName][thisSection] = [thisModule];
+        }
+      }
+
+      for (item in langObject) {
+        langArray.push(langObject[item]);
+      }
+
+      Language.create(langArray, function(err, languages) {
+        if (err) {
+          console.log(err);
+        }
+
+        console.log(languages);
+      });
+
+      res.send('uploaded');
+    });
+
+    fs.createReadStream(__dirname + '/model-data.csv').pipe(parser);
   }
 };
