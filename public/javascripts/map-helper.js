@@ -1,6 +1,10 @@
+'use strict';
+
+var myMapArea;
+
 (function() {
   function initMap() {
-    var mapProp, map, mapMarkers, coordinates, area;
+    var mapProp, map, mapMarkers, coordinates;
 
     mapProp = {
       center:new google.maps.LatLng(51.508742,-0.120850),
@@ -15,11 +19,11 @@
     map.addListener('rightclick', function(event) {
       var position, marker;
 
-      if (area) {
-        area.setMap(null);
+      if (myMapArea) {
+        myMapArea.setMap(null);
       }
 
-      position = event.latLng
+      position = event.latLng;
       marker = new google.maps.Marker({
         position: position,
         map: map,
@@ -28,7 +32,7 @@
       });
 
       mapMarkers.push(marker);
-      coordinates.push(position)
+      coordinates.push(position);
 
       marker.addListener('rightclick', function(event) {
         var oldPosition, i;
@@ -46,10 +50,10 @@
       });
 
       marker.addListener('dblclick', function(event) {
-        var thisMap, area, i;
+        var thisMap, i;
 
         thisMap = this.map;
-        area=new google.maps.Polygon({
+        myMapArea=new google.maps.Polygon({
           path: coordinates,
           map: thisMap,
           editable: true,
@@ -67,21 +71,21 @@
         coordinates = [];
         mapMarkers = [];
 
-        area.getPaths().forEach(function(path, index) {
+        myMapArea.getPaths().forEach(function(path, index) {
           // google.maps.event.addListener(path, 'set_at', function(){
           //   console.log('moved');
           // });
           google.maps.event.addListener(path, 'insert_at', function(){
-            sessionStorage.paths = area.getPaths();
+            sessionStorage.paths = myMapArea.getPaths();
           });
         });
 
-        google.maps.event.addListener(area, 'dragend', function(){
-          console.log(area.getPaths());
-          sessionStorage.setItem('paths', JSON.stringify(area.getPaths());
+        google.maps.event.addListener(myMapArea, 'dragend', function(){
+          console.log(myMapArea.getPaths());
+          sessionStorage.setItem('paths', JSON.stringify(myMapArea.getPaths()));
         });
 
-        area.addListener('rightclick', function(event) {
+        myMapArea.addListener('rightclick', function(event) {
           this.setMap(null);
         });
       });
@@ -89,30 +93,38 @@
   }
 
   google.maps.event.addDomListener(window, 'load', initMap);
-})()
+})();
 
-$(function($) {
+(function($) {
   $('form').submit(function(event) {
-    var name, paths;
+    var name, path;
 
-    name = $('#name-input').value();
-    paths = sessionStorage.getItem(paths);
-    event.preventDefault()
+    event.preventDefault();
 
-    console.log(paths);
+    if (!myMapArea) {
+      alert('Please select an area of the map where your language is spoken.');
 
-    $.post({
-      type: 'POST',
-      url: '/admin/languages',
-      data: {
-        name: name,
-        paths: paths
-      },
-      success: function(res) {
-        console.log(res);
-      },
-      error: function(res) {
-        console.log(res);
-      }
+    } else {
+      name = $('#name-input').val();
+      path = myMapArea.getPath();
+      path = google.maps.geometry.encoding.encodePath(path);
+
+            console.log(name, path);
+
+      $.post({
+        type: 'POST',
+        url: '/admin/languages',
+        data: {
+          name: name,
+          path: path
+        },
+        success: function(res) {
+          console.log(res);
+        },
+        error: function(res) {
+          console.log(res);
+        }
+      });
+    }
   });
-})(jQuery)
+})(jQuery);

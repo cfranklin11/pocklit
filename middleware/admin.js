@@ -30,14 +30,14 @@ self = module.exports = {
     });
   },
   addLanguage: function(req, res, next) {
-    var inputs,langName;
+    var inputs,langName, langPath;
 
-    inputs = req.body['data[]'];
+    console.log(req.body);
 
-    console.log(inputs.paths);
+    inputs = req.body;
+
     langName = inputs.name;
-    langPaths = JSON.parse(inputs.paths);
-    console.log(inputs.paths);
+    langPath = inputs.path;
 
     // Language.findOne({'name': langName},
     //   function (err, language) {

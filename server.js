@@ -29,7 +29,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 //Connect to database
-mongoose.connect( config.url );
+// mongoose.connect( config.url );
 
 // Configure sessions
 app.use(session({
